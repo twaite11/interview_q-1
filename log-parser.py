@@ -167,3 +167,4 @@ if __name__ == "__main__":
 
     robots = analyze_robot_logs('robot_logs.txt')
     run_cli(robots)
+    print('crazy rich asians is a good movie')
