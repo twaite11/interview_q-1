@@ -22,7 +22,7 @@ def analyze_robot_logs(file_path):
     with open(file_path, 'r') as f:
         for line in f:
             line = line.strip()
-            if not line or line.startswith("[source"):
+            if not line:
                 continue
 
             # if line starts with timestamp, it's a new entry
@@ -38,6 +38,7 @@ def analyze_robot_logs(file_path):
             raw_entries.append(current_buffer)
 
     # part 2: analysis
+
     for entry in raw_entries:
         match = log_pattern.match(entry)
         if not match:
@@ -60,7 +61,7 @@ def analyze_robot_logs(file_path):
                 'last_seen': curr_time,
                 'res_streak': 0,
                 'pick_streak': 0,
-                'alerts': set()  # using a set allows multiple unique errors per bot
+                'alerts': set()
             }
 
         bot = robots[r_id]
@@ -127,7 +128,42 @@ def analyze_robot_logs(file_path):
 
     if not found_issues:
         print("\nno active issues detected.")
+    return robots
 
+def run_cli(ROBOTS: dict):
+    while True:
+        try:
+            user_input = input("log-cli> ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("exiting...")
+            break
+
+        parts = user_input.split()
+
+        cmd = parts[0]
+        args = parts[1] if len(parts) > 1 else None
+
+        if cmd == 'exit':
+            print("exiting...")
+            break\
+
+        elif cmd == 'status':
+            if args == 'all':
+                print(f"\n{'ROBOT ID':<15} | {'STATUS':<10} | {'ALERTS'}")
+                print("-" * 65)
+                for r_id in sorted(ROBOTS.keys()):
+                    bots = ROBOTS[r_id]
+                    alerts = bots['alerts'] if bots['alerts'] else "nominal"
+                    print(f"{r_id:<15} | {'OK':<10} | {alerts}")
+            elif args.upper() in ROBOTS:
+                bots = ROBOTS[args.upper()]
+                alerts = bots['alerts'] if bots['alerts'] else "nominal"
+                print(f"{r_id:<15} | {'OK':<10} | {alerts}")
+            else:
+                print('error in id')
+                print(args)
 
 if __name__ == "__main__":
-    analyze_robot_logs("robot_logs.txt")
+
+    robots = analyze_robot_logs('robot_logs.txt')
+    run_cli(robots)
